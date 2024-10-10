@@ -1,0 +1,94 @@
+# Dépendances Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log*
+yarn-error.log*
+
+# Variables d'environnement
+.env
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pm2.log
+logs/*
+
+# Process
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Systèmes de déploiement
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Développement et IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Configuration des OS (Mac, Linux, Windows)
+.DS_Store
+Thumbs.db
+
+# Fichiers temporaires
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Cache ESLint
+.eslintcache
+
+# Babel output
+dist/
+build/
+
+# Cache TypeScript
+*.tsbuildinfo
+
+# Cache webpack
+.cache/
+.webpack/
+
+# Coverage Directory lors des tests unitaires
+coverage/
+
+# Cache Jest
+jest-coverage/
+
+# NPM & Yarn
+package-lock.json
+yarn.lock
+
+# Compilation de binaires
+*.out
+*.exe
+*.dll
+*.o
+*.a
+
+# Clés SSL ou autres certificats
+*.pem
+*.key
+
+# Fichiers de Swagger générés
+swagger.json
+swagger.yaml
+
+# Dossier d'uploads temporaires
+uploads/
+
+# Divers fichiers générés
+*.bak
+*.orig
+*.save
