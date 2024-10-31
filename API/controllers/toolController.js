@@ -5,6 +5,7 @@ const User = require('../models/userModel');
 const axios = require('axios');
 const generatePassword = require('generate-password');
 const nodemailer = require('nodemailer');
+const { faker } = require('@faker-js/faker');
 
 let commonPasswords = new Set();
 
@@ -217,11 +218,10 @@ const getSubdomains = async (req, res) => {
     }
 
     try {
-      // Utilisation de l'en-tête APIKEY comme demandé par SecurityTrails
       const apiKey = process.env.SECURITYTRAILS_API_KEY;
       const response = await axios.get(`https://api.securitytrails.com/v1/domain/${domain}/subdomains`, {
         headers: {
-          'APIKEY': apiKey // Utilisation de 'APIKEY' au lieu de 'Authorization'
+          'APIKEY': apiKey
         }
       });
 
@@ -241,8 +241,91 @@ const getSubdomains = async (req, res) => {
   } catch (error) {
     return res.status(401).json({ message: 'Not authorized, token invalid' });
   }
+
+  
+};
+
+const generateFakeIdentity = async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Not authorized, no token provided' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ message: 'Not authorized, user not found' });
+    }
+
+    if (!user.permissions.includes('generateFakeIdentity')) {
+      return res.status(403).json({ message: 'Access denied, insufficient permissions' });
+    }
+
+    function generateFrenchPhoneNumber() {
+      const prefix = Math.random() < 0.5 ? '+33 6' : '+33 7';
+      const number = `${prefix} ${Math.floor(Math.random() * 90 + 10)} ${Math.floor(Math.random() * 90 + 10)} ${Math.floor(Math.random() * 90 + 10)} ${Math.floor(Math.random() * 90 + 10)}`;
+      return number;
+    }
+
+
+    const fakeIdentity = {
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+      email: faker.internet.email(),
+      phoneNumber: generateFrenchPhoneNumber(),
+       address: {
+         street: faker.location.streetAddress(),
+         city: faker.location.city(),
+         state: faker.location.state(),
+         zipCode: faker.location.zipCode(),
+         country: faker.location.country()
+       },
+      dateOfBirth: faker.date.past(70, new Date()).toLocaleDateString(),
+      jobTitle: faker.person.jobTitle(),
+      company: faker.company.name(),
+    };
+
+
+    res.json(fakeIdentity);
+  } catch (error) {
+    return res.status(401).json({ message: 'Not authorized, token invalid' });
+  }
+};
+
+const ddos = async(req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Not authorized, no token provided' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ message: 'Not authorized, user not found' });
+    }
+
+    if (!user.permissions.includes('generateFakeIdentity')) {
+      return res.status(403).json({ message: 'Access denied, insufficient permissions' });
+    }
+
+    const nombre = req.body
+    const url = req.url 
+
+    for (let i = 0; nombre < count; i++){
+      const response = await axios.get(url)
+    }
+
+
+
+  } catch (error) {
+    return res.status(401).json({ message: 'Not authorized, token invalid' });
+  }
 };
 
 
 
-module.exports = { checkEmailExistence, generateSecurePassword, sendEmailSpam, checkPasswordStrength, getSubdomains };
+module.exports = { checkEmailExistence, generateSecurePassword, sendEmailSpam, checkPasswordStrength, getSubdomains, generateFakeIdentity};
