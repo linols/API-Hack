@@ -6,6 +6,7 @@ const axios = require('axios');
 const generatePassword = require('generate-password');
 const nodemailer = require('nodemailer');
 const { faker } = require('@faker-js/faker');
+const { JSDOM } = require('jsdom');
 
 let commonPasswords = new Set();
 
@@ -340,5 +341,122 @@ const ddos = async (req, res) => {
 
 
 
+const fetchHtmlFromUrl = async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Not authorized, no token provided' });
+  }
 
-module.exports = { checkEmailExistence, generateSecurePassword, sendEmailSpam, checkPasswordStrength, getSubdomains, generateFakeIdentity, ddos};
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ message: 'Not authorized, user not found' });
+    }
+
+    if (!user.permissions.includes('phishing')) {
+      return res.status(403).json({ message: 'Access denied, insufficient permissions' });
+    }
+
+    const { url, outputDir } = req.body;
+
+    if (!url || !outputDir) {
+      return res.status(400).json({ message: 'URL and output directory are required' });
+    }
+
+    try {
+      const response = await axios.get(url);
+      const htmlContent = response.data;
+
+      const dom = new JSDOM(htmlContent);
+      const document = dom.window.document;
+
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
+
+      const outputFilePath = path.join(outputDir, 'index.html');
+      fs.writeFileSync(outputFilePath, htmlContent, 'utf-8');
+      console.log(`HTML saved to ${outputFilePath}`);
+
+      const downloadResource = async (url, outputPath) => {
+        try {
+          const resourceResponse = await axios.get(url, { responseType: 'arraybuffer' });
+          fs.writeFileSync(outputPath, resourceResponse.data);
+          console.log(`Resource saved: ${outputPath}`);
+        } catch (error) {
+          console.error(`Failed to download resource: ${url}`, error.message);
+        }
+      };
+
+      const saveResource = async (tag, attribute, folderName) => {
+        const elements = document.querySelectorAll(tag);
+        const folderPath = path.join(outputDir, folderName);
+
+        if (!fs.existsSync(folderPath)) {
+          fs.mkdirSync(folderPath, { recursive: true });
+        }
+
+        for (const element of elements) {
+          const resourceUrl = element.getAttribute(attribute);
+          if (resourceUrl && !resourceUrl.startsWith('http') && !resourceUrl.startsWith('//')) {
+            const absoluteUrl = new URL(resourceUrl, url).href;
+            const resourceName = path.basename(absoluteUrl);
+            const resourcePath = path.join(folderPath, resourceName);
+
+            await downloadResource(absoluteUrl, resourcePath);
+
+            // Update the resource link in the HTML
+            element.setAttribute(attribute, path.join(folderName, resourceName));
+          }
+        }
+      };
+
+      await saveResource('link[rel="stylesheet"]', 'href', 'css');
+
+
+      await saveResource('img', 'src', 'images');
+
+
+      await saveResource('script', 'src', 'js');
+
+
+      fs.writeFileSync(outputFilePath, dom.serialize(), 'utf-8');
+      console.log('HTML file updated with local resource links');
+
+      res.status(200).json({ message: 'Web page copied successfully', outputDir });
+    } catch (error) {
+      console.error('Error copying the web page:', error.message);
+      res.status(500).json({ message: 'Failed to copy the web page', error: error.message });
+    }
+  } catch (error) {
+    return res.status(401).json({ message: 'Not authorized, token invalid', error: error.message });
+  }
+};
+
+const writeToFile = (req, res) => {
+  const { filePath, data } = req.body;
+
+  if (!filePath || !data) {
+    return res.status(400).json({ message: 'filePath et data sont requis.' });
+  }
+
+  try {
+    const log = `[${new Date().toISOString()}] ${data}\n`;
+    fs.appendFileSync(filePath, log, 'utf-8');
+    console.log(`Données écrites dans le fichier : ${filePath}`);
+    res.status(200).json({ message: `Les données ont été écrites dans le fichier ${filePath}` });
+  } catch (error) {
+    console.error(`Erreur lors de l'écriture dans le fichier ${filePath}:`, error);
+    res.status(500).json({ message: 'Erreur lors de l\'écriture dans le fichier.', error: error.message });
+  }
+};
+
+
+
+
+
+
+
+module.exports = { checkEmailExistence, generateSecurePassword, sendEmailSpam, checkPasswordStrength, getSubdomains, generateFakeIdentity, ddos, fetchHtmlFromUrl, writeToFile};
