@@ -32,4 +32,6 @@ jobs:
     - name: Debug Secrets
       if: always()
       run: |
-        echo "Password length: ${#secrets.VPS_PASSWORD}"
+        echo "Password length: ${#VPS_PASSWORD}"
+      env:
+        VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
