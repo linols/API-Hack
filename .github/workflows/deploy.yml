@@ -3,7 +3,7 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - main  # Déclencher la pipeline sur les modifications de la branche "main"
+      - main  # Déclencher la pipeline sur chaque push dans la branche "main"
 
 jobs:
   deploy:
@@ -14,12 +14,16 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Étape 2 : Déployer sur le VPS
+    # Étape 2 : Installer sshpass
+    - name: Install sshpass
+      run: sudo apt-get install -y sshpass
+
+    # Étape 3 : Déployer sur le VPS
     - name: Deploy to VPS
       run: |
-        ssh -o StrictHostKeyChecking=no root@vps106740 << 'EOF'
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no root@vps106740 << 'EOF'
           cd /var/www/hack/API
-          git pull https://github.com/linols/API-Hack.git main
+          git pull origin main
           npm install
           pm2 restart api-hack
         EOF
