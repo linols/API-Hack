@@ -1,0 +1,25 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main  # Déclencher la pipeline sur les modifications de la branche "main"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Étape 1 : Vérifier le code source
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Étape 2 : Déployer sur le VPS
+    - name: Deploy to VPS
+      run: |
+        ssh -o StrictHostKeyChecking=no root@vps106740 << 'EOF'
+          cd /var/www/hack/API
+          git pull https://github.com/linols/API-Hack.git main
+          npm install
+          pm2 restart api-hack
+        EOF
