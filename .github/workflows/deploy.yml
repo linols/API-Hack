@@ -3,7 +3,7 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - main  # Déclencher la pipeline sur chaque push dans la branche "main"
+      - main  # Déclenche la pipeline sur chaque push dans la branche "main"
 
 jobs:
   deploy:
@@ -21,7 +21,7 @@ jobs:
     # Étape 3 : Déployer sur le VPS
     - name: Deploy to VPS
       run: |
-        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no root@vps106740 << 'EOF'
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no root@31.207.34.16 'bash -s' << 'EOF'
           cd /var/www/hack/API
           git pull origin main
           npm install
