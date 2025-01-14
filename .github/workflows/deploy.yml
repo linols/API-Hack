@@ -28,10 +28,3 @@ jobs:
           pm2 restart api-hack
         EOF
 
-    # Étape 4 : Déboguer le secret, même si une étape précédente échoue
-    - name: Debug Secrets
-      if: always()
-      run: |
-        echo "Password length: ${#VPS_PASSWORD}"
-      env:
-        VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
