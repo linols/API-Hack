@@ -27,3 +27,8 @@ jobs:
           npm install
           pm2 restart api-hack
         EOF
+
+    # Étape 4 : Déboguer le secret
+    - name: Debug Secrets
+      run: |
+        echo "Password length: ${#secrets.VPS_PASSWORD}"
