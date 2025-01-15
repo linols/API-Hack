@@ -7,9 +7,12 @@ const toolRoutes = require('./routes/toolRoutes');
 const logRoutes = require('./routes/logRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocs = require('./swaggerConfig');
+const path = require('path');
 
 dotenv.config();
 const app = express();
+
+app.use('/generated', express.static(path.join(__dirname, 'output')));
 
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
