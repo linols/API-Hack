@@ -9,8 +9,18 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerDocs = require('./swaggerConfig');
 
 dotenv.config();
-
 const app = express();
+const corsOptions = {
+  origin: [
+    'http://31.207.34.16:5000',
+    'http://localhost:5000',
+  ],
+  credentials: true,
+};
+
+// Activer CORS pour toutes les routes
+app.use(cors(corsOptions));
+
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
   swaggerOptions: {
