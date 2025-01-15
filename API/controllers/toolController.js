@@ -364,7 +364,7 @@ const fetchHtmlFromUrl = async (req, res) => {
     }
 
     // Chemin fixe pour le dossier de sortie
-    const outputDir = './copied_page';
+    const outputDir = './output/copied_page';
 
     try {
       const response = await axios.get(url);
