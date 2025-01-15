@@ -20,12 +20,10 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
   swaggerOptions: {
     persistAuthorization: true,
     requestInterceptor: (req) => {
-      // Log de l'URL et des en-têtes avant d'envoyer la requête
       console.log('Requête interceptée :');
       console.log('URL :', req.url);
       console.log('Headers avant modification :', req.headers);
 
-      // Injecter le token JWT dans l'en-tête Authorization pour les endpoints sécurisés
       if (!req.url.includes('/login') && !req.url.includes('/register')) {
         if (jwtToken) {
           req.headers.Authorization = `Bearer ${jwtToken}`;
@@ -78,7 +76,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
 
 
 
-// Connexion à MongoDB
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -86,20 +83,16 @@ mongoose.connect(process.env.MONGO_URI, {
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Middleware pour l'analyse du JSON
 app.use(express.json());
 
-// Middleware de logging
 app.use(logMiddleware);
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tools', toolRoutes);
 app.use('/api/logs', logRoutes)
 app.use('/api/logins', loginRoutes);
 
 
-// Lancement du serveur
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

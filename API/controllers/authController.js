@@ -2,25 +2,21 @@ const User = require('../models/userModel');
 const generateToken = require('../utils/generateToken');
 const bcrypt = require('bcryptjs');
 
-// Enregistrer un nouvel utilisateur
 const registerUser = async (req, res) => {
   const { username, email, password } = req.body;
 
   try {
-    // Vérifier si l'utilisateur existe déjà
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Créer un nouvel utilisateur
     const user = await User.create({
       username,
       email,
       password,
     });
 
-    // Envoyer une réponse avec le token JWT
     res.status(201).json({
       _id: user._id,
       username: user.username,
@@ -32,7 +28,7 @@ const registerUser = async (req, res) => {
   }
 };
 
-// Connexion de l'utilisateur
+
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 

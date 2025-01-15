@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 const moment = require('moment-timezone');
 
-// Function to check if the user is an admin
 const isAdmin = async (authHeader) => {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return false;
@@ -22,21 +21,21 @@ const isAdmin = async (authHeader) => {
   }
 };
 
-// Utility function for pagination
+
 const paginate = (model, page, limit) => {
   const skip = (page - 1) * limit;
   return model.skip(skip).limit(limit);
 };
 
-// Get all logs with pagination
+
 const getAllLogs = async (req, res) => {
   if (!(await isAdmin(req.headers.authorization))) {
     return res.status(403).json({ message: 'Access denied, insufficient permissions' });
   }
 
   try {
-    const page = parseInt(req.query.page) || 1; // Default to page 1
-    const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
 
     let logsQuery = Log.find().sort({ timestamp: -1 });
     const logs = await paginate(logsQuery, page, limit);
@@ -59,7 +58,7 @@ const getAllLogs = async (req, res) => {
   }
 };
 
-// Get logs by user email with pagination
+
 const getLogsByUserEmail = async (req, res) => {
   if (!(await isAdmin(req.headers.authorization))) {
     return res.status(403).json({ message: 'Access denied, insufficient permissions' });
@@ -96,7 +95,7 @@ const getLogsByUserEmail = async (req, res) => {
   }
 };
 
-// Get logs by feature with pagination
+
 const getLogsByFeature = async (req, res) => {
   if (!(await isAdmin(req.headers.authorization))) {
     return res.status(403).json({ message: 'Access denied, insufficient permissions' });

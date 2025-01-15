@@ -122,7 +122,6 @@ const generateSecurePassword = async (req, res) => {
 
     const length = req.body.length || 16;
 
-    // Génération du mot de passe avec la bibliothèque generate-password
     const password = generatePassword.generate({
       length: length,
       numbers: true,         
@@ -213,7 +212,7 @@ const getSubdomains = async (req, res) => {
     }
 
     let { domain } = req.body;
-    domain = domain.replace(/^www\./i, ''); // Supprimer 'www.' au début du domaine
+    domain = domain.replace(/^www\./i, '');
     if (!domain) {
       return res.status(400).json({ message: 'Domain is required' });
     }
@@ -227,9 +226,8 @@ const getSubdomains = async (req, res) => {
       });
 
       let subdomains = response.data.subdomains
-        .filter(subdomain => subdomain.toLowerCase() !== 'www') // Exclusion de 'www'
+        .filter(subdomain => subdomain.toLowerCase() !== 'www')
         .map(subdomain => {
-          // Supprimer toute occurrence supplémentaire de 'www.' dans les sous-domaines
           const cleanSubdomain = subdomain.replace(/^www\./i, '');
           return `${cleanSubdomain}.${domain}`;
         });
@@ -425,21 +423,17 @@ const fetchHtmlFromUrl = async (req, res) => {
         });
       `;
 
-      // Écrire le script dans un fichier séparé
       fs.writeFileSync(scriptFilePath, scriptContent, 'utf-8');
       console.log(`Script saved to ${scriptFilePath}`);
 
-      // Ajouter le script à la page
       const scriptElement = document.createElement('script');
       scriptElement.src = './monitor.js';
       scriptElement.type = 'text/javascript';
       document.body.appendChild(scriptElement);
 
-      // Mettre à jour le HTML avec les liens des ressources et le script injecté
       fs.writeFileSync(outputFilePath, dom.serialize(), 'utf-8');
       console.log('HTML file updated with local resource links and monitoring script');
 
-      // Construire l'URL publique
       const serverUrl = `${req.protocol}://${req.get('host')}`;
       const publicUrl = `${serverUrl}/generated/copied_page/index.html`;
 
@@ -497,12 +491,10 @@ const getRandomPersonImage = async (req, res) => {
     }
 
     try {
-      // Appel de l'API \"This Person Does Not Exist\"
       const response = await axios.get('https://thispersondoesnotexist.com', {
-        responseType: 'arraybuffer', // Récupérer les données binaires de l'image
+        responseType: 'arraybuffer',
       });
 
-      // Configuration de l'en-tête pour afficher l'image
       res.setHeader('Content-Type', 'image/jpeg');
       res.status(200).send(response.data);
     } catch (error) {
@@ -550,7 +542,6 @@ const searchPersonLinks = async (req, res) => {
         return res.status(404).json({ message: 'No data found for the specified person' });
       }
 
-      // Extract relevant data
       const relevantData = {
         organicLinks: searchResults.organic_results.map(result => ({
           title: result.title,
