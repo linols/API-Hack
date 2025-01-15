@@ -38,12 +38,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
       console.log('Headers après modification :', req.headers);
       return req;
     },
-    responseInterceptor: (res) => {
-      console.log('Réponse interceptée :');
-      console.log('URL :', res.url);
-      console.log('Statut :', res.status);
-      console.log('Corps brut :', res.body);
-    
+    responseInterceptor: (res) => {    
       try {
         let responseBody;
     
