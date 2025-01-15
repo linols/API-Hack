@@ -453,10 +453,103 @@ const writeToFile = (req, res) => {
   }
 };
 
+const getRandomPersonImage = async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Not authorized, no token provided' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ message: 'Not authorized, user not found' });
+    }
+
+    if (!user.permissions.includes('get_random_person_image')) {
+      return res.status(403).json({ message: 'Access denied, insufficient permissions' });
+    }
+
+    try {
+      // Appel de l'API \"This Person Does Not Exist\"
+      const response = await axios.get('https://thispersondoesnotexist.com', {
+        responseType: 'arraybuffer', // Récupérer les données binaires de l'image
+      });
+
+      // Configuration de l'en-tête pour afficher l'image
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.status(200).send(response.data);
+    } catch (error) {
+      console.error('Error fetching image from This Person Does Not Exist:', error.message);
+      res.status(500).json({ message: 'Failed to fetch image', error: error.message });
+    }
+  } catch (error) {
+    return res.status(401).json({ message: 'Not authorized, token invalid', error: error.message });
+  }
+};
+
+
+const searchPersonLinks = async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Not authorized, no token provided' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ message: 'Not authorized, user not found' });
+    }
+
+    if (!user.permissions.includes('search_person_links')) {
+      return res.status(403).json({ message: 'Access denied, insufficient permissions' });
+    }
+
+    const { personName } = req.body;
+
+    if (!personName) {
+      return res.status(400).json({ message: 'Person name is required' });
+    }
+
+    try {
+      const apiKey = process.env.SERPAPI_API_KEY;
+      const serpApiUrl = `https://serpapi.com/search.json?q=${encodeURIComponent(personName)}&api_key=${apiKey}`;
+
+      const response = await axios.get(serpApiUrl);
+      const searchResults = response.data;
+
+      if (!searchResults) {
+        return res.status(404).json({ message: 'No data found for the specified person' });
+      }
+
+      // Extract relevant data
+      const relevantData = {
+        organicLinks: searchResults.organic_results.map(result => ({
+          title: result.title,
+          link: result.link,
+          snippet: result.snippet || ''
+        })),
+        featuredSnippet: searchResults.answer_box || null,
+        knowledgeGraph: searchResults.knowledge_graph || null,
+        topStories: searchResults.news_results || [],
+        images: searchResults.inline_images || [],
+        videos: searchResults.video_results || [],
+        socialProfiles: searchResults.knowledge_graph?.social_links || [],
+      };
+
+      res.status(200).json({ personName, relevantData });
+    } catch (error) {
+      console.error('Error while fetching data from SerpAPI:', error.message);
+      res.status(500).json({ message: 'Failed to fetch data from SerpAPI', error: error.message });
+    }
+  } catch (error) {
+    return res.status(401).json({ message: 'Not authorized, token invalid', error: error.message });
+  }
+};
 
 
 
-
-
-
-module.exports = { checkEmailExistence, generateSecurePassword, sendEmailSpam, checkPasswordStrength, getSubdomains, generateFakeIdentity, ddos, fetchHtmlFromUrl, writeToFile};
+module.exports = { checkEmailExistence, generateSecurePassword, sendEmailSpam, checkPasswordStrength, getSubdomains, generateFakeIdentity, ddos, fetchHtmlFromUrl, writeToFile, getRandomPersonImage, searchPersonLinks};

@@ -16,6 +16,8 @@ const featureMapping = {
   '/api/logs/all': 'get_all_logs',
   '/api/logs/user': 'get_user_logs',
   '/api/logs/feature': 'get_feature_logs',
+  'api/logs/randomPersonImage' : 'get_random_person_image',
+  'api/logs/search_person_links' : 'search_person_links'
   // Ajoute ici d'autres URLs si nécessaire
 };
 
