@@ -15,9 +15,20 @@ Cette API propose plusieurs endpoint permettant d'utiliser ou de créer différe
 4. [Démarrage du serveur](#démarrage-du-serveur)
    - [Étape 5 : Lancer l'API](#étape-5--lancer-lapi)
 5. [Utilisation](#utilisation)
-6. [Dépendances principales](#dépendances-principales)
-7. [Contributions](#contributions)
-8. [Licence](#licence)
+   - [Documentation de l'API](#documentation-de-lapi)
+   - [Authentification](#authentification)
+   - [Gestion des utilisateurs](#gestion-des-utilisateurs)
+   - [Outils](#outils)
+   - [Logs](#logs)
+   - [Bonnes pratiques](#bonnes-pratiques)
+6. [Utilisation en ligne](#utilisation-en-ligne)
+   - [URL principale de l'API](#url-principale-de-lapi)
+   - [Swagger UI](#swagger-ui)
+   - [Récupération du token JWT](#🔑--récupération-du-token-jwt)
+   - [Gestion des permissions](#⚙️--gestion-des-permissions)
+7. [Dépendances principales](#dépendances-principales)
+8. [Contributions](#contributions)
+9. [Licence](#licence)
 
 ---
 
