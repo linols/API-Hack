@@ -5,6 +5,7 @@ const logMiddleware = require('./middleware/logMiddleware');
 const authRoutes = require('./routes/authRoutes');
 const toolRoutes = require('./routes/toolRoutes');
 const logRoutes = require('./routes/logRoutes');
+const loginRoutes = require('./routes/loginRoutes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocs = require('./swaggerConfig');
 const path = require('path');
@@ -94,7 +95,9 @@ app.use(logMiddleware);
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tools', toolRoutes);
-app.use('/api/logs', logRoutes); // Ajouter les routes de logs
+app.use('/api/logs', logRoutes)
+app.use('/api/logins', loginRoutes);
+
 
 // Lancement du serveur
 const PORT = process.env.PORT || 5000;
