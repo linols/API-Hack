@@ -10,11 +10,11 @@ const swaggerOptions = {
     },
     tags: [
       {
-        name: 'Auth', // Nom du tag
+        name: 'Auth',
         description: 'Authentication and registration',
       },
       {
-        name: 'Users', // Nom du tag
+        name: 'Users', 
         description: 'User management and permissions',
       },
     ],
@@ -25,7 +25,7 @@ const swaggerOptions = {
       },
     ],
   },
-  apis: ['./routes/*.js'], // Ajoutez vos fichiers de routes ici
+  apis: ['./routes/*.js'],
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);

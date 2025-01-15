@@ -1,9 +1,9 @@
 const Log = require('../models/logModel');
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
-const moment = require('moment-timezone'); 
+const moment = require('moment-timezone');
 
-// Fonction pour vérifier si l'utilisateur est admin
+// Function to check if the user is an admin
 const isAdmin = async (authHeader) => {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return false;
@@ -22,86 +22,110 @@ const isAdmin = async (authHeader) => {
   }
 };
 
+// Utility function for pagination
+const paginate = (model, page, limit) => {
+  const skip = (page - 1) * limit;
+  return model.skip(skip).limit(limit);
+};
 
-
-
+// Get all logs with pagination
 const getAllLogs = async (req, res) => {
   if (!(await isAdmin(req.headers.authorization))) {
     return res.status(403).json({ message: 'Access denied, insufficient permissions' });
   }
 
   try {
-    let logs = await Log.find().sort({ timestamp: -1 });
+    const page = parseInt(req.query.page) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
 
-    // Convertir les timestamps en heure de Paris pour tous les champs de date
-    logs = logs.map(log => ({
+    let logsQuery = Log.find().sort({ timestamp: -1 });
+    const logs = await paginate(logsQuery, page, limit);
+
+    const formattedLogs = logs.map((log) => ({
       ...log._doc,
-      timestamp: moment(log.timestamp).tz("Europe/Paris").format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
-      createdAt: moment(log.createdAt).tz("Europe/Paris").format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
-      updatedAt: moment(log.updatedAt).tz("Europe/Paris").format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+      timestamp: moment(log.timestamp).tz('Europe/Paris').format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+      createdAt: moment(log.createdAt).tz('Europe/Paris').format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+      updatedAt: moment(log.updatedAt).tz('Europe/Paris').format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
     }));
 
-    res.status(200).json(logs);
+    res.status(200).json({
+      currentPage: page,
+      totalItems: await Log.countDocuments(),
+      totalPages: Math.ceil(await Log.countDocuments() / limit),
+      logs: formattedLogs,
+    });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur lors de la récupération des logs' });
   }
 };
 
-
-
-// Voir les dernières actions d'un utilisateur spécifique
+// Get logs by user email with pagination
 const getLogsByUserEmail = async (req, res) => {
-    if (!(await isAdmin(req.headers.authorization))) {
-      return res.status(403).json({ message: 'Access denied, insufficient permissions' });
-    }
-  
-    try {
-      const { email } = req.params;
-  
-      const user = await User.findOne({ email });
-      if (!user) {
-        return res.status(404).json({ message: 'Utilisateur non trouvé avec cet email' });
-      }
-  
-      let logs = await Log.find({ userEmail: email }).sort({ timestamp: -1 });
-  
-      logs = logs.map(log => ({
-        ...log._doc,
-        timestamp: moment(log.timestamp).tz("Europe/Paris").format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
-        createdAt: moment(log.createdAt).tz("Europe/Paris").format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
-        updatedAt: moment(log.updatedAt).tz("Europe/Paris").format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
-      }));
-  
-      res.status(200).json(logs);
-    } catch (error) {
-      res.status(500).json({ message: 'Erreur serveur lors de la récupération des logs pour cet utilisateur' });
-    }
-  };
-  
+  if (!(await isAdmin(req.headers.authorization))) {
+    return res.status(403).json({ message: 'Access denied, insufficient permissions' });
+  }
 
-// Voir les dernières actions sur une fonctionnalité spécifique
+  try {
+    const { email } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé avec cet email' });
+    }
+
+    let logsQuery = Log.find({ userEmail: email }).sort({ timestamp: -1 });
+    const logs = await paginate(logsQuery, page, limit);
+
+    const formattedLogs = logs.map((log) => ({
+      ...log._doc,
+      timestamp: moment(log.timestamp).tz('Europe/Paris').format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+      createdAt: moment(log.createdAt).tz('Europe/Paris').format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+      updatedAt: moment(log.updatedAt).tz('Europe/Paris').format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+    }));
+
+    res.status(200).json({
+      currentPage: page,
+      totalItems: await Log.countDocuments({ userEmail: email }),
+      totalPages: Math.ceil(await Log.countDocuments({ userEmail: email }) / limit),
+      logs: formattedLogs,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur lors de la récupération des logs pour cet utilisateur' });
+  }
+};
+
+// Get logs by feature with pagination
 const getLogsByFeature = async (req, res) => {
-    if (!(await isAdmin(req.headers.authorization))) {
-      return res.status(403).json({ message: 'Access denied, insufficient permissions' });
-    }
-  
-    try {
-      const { feature } = req.params;
-  
-      let logs = await Log.find({ feature }).sort({ timestamp: -1 });
-  
-      logs = logs.map(log => ({
-        ...log._doc,
-        timestamp: moment(log.timestamp).tz("Europe/Paris").format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
-        createdAt: moment(log.createdAt).tz("Europe/Paris").format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
-        updatedAt: moment(log.updatedAt).tz("Europe/Paris").format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
-      }));
-  
-      res.status(200).json(logs);
-    } catch (error) {
-      res.status(500).json({ message: 'Erreur serveur lors de la récupération des logs pour cette fonctionnalité' });
-    }
-  };
-  
+  if (!(await isAdmin(req.headers.authorization))) {
+    return res.status(403).json({ message: 'Access denied, insufficient permissions' });
+  }
+
+  try {
+    const { feature } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    let logsQuery = Log.find({ feature }).sort({ timestamp: -1 });
+    const logs = await paginate(logsQuery, page, limit);
+
+    const formattedLogs = logs.map((log) => ({
+      ...log._doc,
+      timestamp: moment(log.timestamp).tz('Europe/Paris').format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+      createdAt: moment(log.createdAt).tz('Europe/Paris').format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+      updatedAt: moment(log.updatedAt).tz('Europe/Paris').format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+    }));
+
+    res.status(200).json({
+      currentPage: page,
+      totalItems: await Log.countDocuments({ feature }),
+      totalPages: Math.ceil(await Log.countDocuments({ feature }) / limit),
+      logs: formattedLogs,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur lors de la récupération des logs pour cette fonctionnalité' });
+  }
+};
 
 module.exports = { getAllLogs, getLogsByUserEmail, getLogsByFeature };
